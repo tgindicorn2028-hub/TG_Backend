@@ -430,7 +430,7 @@ async def generate_odt_qr(
   return {
       "payment_qr_url": qr_url,
       "amount": amount
-  } 
+  }  
 
 
 
