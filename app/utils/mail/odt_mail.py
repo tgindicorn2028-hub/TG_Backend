@@ -43,9 +43,9 @@ def send_booking_email(
         traveller_html += f"""
         <p>{i}. {t.full_name} | {t.age} | {t.gender}</p>
         """
-    admin_action_base = "https://tgbackend-production-bd64.up.railway.app/odt/approve"
+    admin_action_base = "https://tgbackend-production-8ef0.up.railway.app/odt/approve"
     approve_link = f"{admin_action_base}?booking_id={booking_id}"
-    decline_link = f"https://tgbackend-production-bd64.up.railway.app/odt/decline?booking_id={booking_id}"
+    decline_link = f"https://tgbackend-production-8ef0.up.railway.app/odt/decline?booking_id={booking_id}"
     html_body = f"""
     <h2>New Trek Booking</h2>
 
