@@ -34,37 +34,43 @@ async def create_bhajan_jamming_form(
     return {"status": "Bhajan Jamming form submitted successfully"}
 
 @router.post("/bhajan-jamming/private")
-async def create_bhajan_jamming_form_private(
-    background_tasks: BackgroundTasks,
+async def create_private_booking(
     full_name: str = Form(...),
-    age: int = Form(None),
+    age: int = Form(...),
     contact_number: str = Form(...),
-    city: str = Form(None),
-    occasion: str = Form(None),
-    date: str = Form(None),
+    city: str = Form(...),
+    occasion: str = Form(...),
+    date: date = Form(...),
     theme_preference: str = Form(None),
     special_requests: str = Form(None),
     db: Session = Depends(get_db)
 ):
-    bhajan_jamming_entry = models.BhajanJammingBooking(
-        full_name=full_name,
-        age=age,
-        contact_number=contact_number,
-        city=city,
-        occasion=occasion,
-        date=date,
-        theme_preference=theme_preference,
-        special_requests=special_requests
-    )
+    try:
+        entry = models.BhajanJammingBooking(
+            full_name=full_name,
+            age=age,
+            contact_number=contact_number,
+            city=city,
+            occasion=occasion,
+            date=date,
+            theme_preference=theme_preference,
+            special_requests=special_requests
+        )
 
-    db.add(bhajan_jamming_entry)
-    db.commit()
-    db.refresh(bhajan_jamming_entry)
-    # if(email_address):
-    #     background_tasks.add_task(send_bhajan_jamming_email, bhajan_jamming_entry)
+        db.add(entry)
+        db.commit()
+        db.refresh(entry)
 
-    return {"status": "Bhajan Jamming form submitted successfully"}
+        return {
+            "message": "Booking submitted successfully"
+        }
 
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 async def send_bhajan_jamming_email(data):
     email_body = f"""
     Hello {data.full_name},
