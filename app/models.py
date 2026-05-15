@@ -493,6 +493,25 @@ class BhajanJamming(Base):
         server_default=func.now(),
         nullable=False
     )
+class BhajanJammingBooking(Base):
+    __tablename__ = "bhajan_jamming_booking"
+
+    id = Column(Integer, primary_key=True, index=True)
+    full_name = Column(String(150), nullable=False)
+    contact_number = Column(String(15) , nullable=False)
+    # email_address = Column(String(255))
+    age = Column(Integer , nullable=True)
+    city = Column(String(100) , nullable=False)
+    occasion = Column(String(100) , nullable=False)
+    date = Column(Date , nullable=False)
+    theme_preference = Column(String(100) , nullable=True)
+    special_requests = Column(Text , nullable=True)
+    
+    submitted_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
 class User(Base):
     __tablename__ = "users"
 

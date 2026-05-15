@@ -10,7 +10,7 @@ import resend
 
 router = APIRouter()
 
-@router.post("/bhajan-jamming")
+@router.post("/bhajan-jamming/free")
 async def create_bhajan_jamming_form(
     background_tasks: BackgroundTasks,
 
@@ -23,6 +23,38 @@ async def create_bhajan_jamming_form(
         full_name=full_name,
         age=age,
         contact_number=contact_number
+    )
+
+    db.add(bhajan_jamming_entry)
+    db.commit()
+    db.refresh(bhajan_jamming_entry)
+    # if(email_address):
+    #     background_tasks.add_task(send_bhajan_jamming_email, bhajan_jamming_entry)
+
+    return {"status": "Bhajan Jamming form submitted successfully"}
+
+@router.post("/bhajan-jamming/private")
+async def create_bhajan_jamming_form_private(
+    background_tasks: BackgroundTasks,
+    full_name: str = Form(...),
+    age: int = Form(None),
+    contact_number: str = Form(...),
+    city: str = Form(None),
+    occasion: str = Form(None),
+    date: str = Form(None),
+    theme_preference: str = Form(None),
+    special_requests: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    bhajan_jamming_entry = models.BhajanJammingBooking(
+        full_name=full_name,
+        age=age,
+        contact_number=contact_number,
+        city=city,
+        occasion=occasion,
+        date=date,
+        theme_preference=theme_preference,
+        special_requests=special_requests
     )
 
     db.add(bhajan_jamming_entry)
