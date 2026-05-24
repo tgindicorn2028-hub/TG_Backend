@@ -7,6 +7,7 @@ from fastapi import BackgroundTasks
 from datetime import date
 import requests
 import resend 
+from app.utils.mail.bhajan_jamming_mail import bhajan_jamming_free_mail , bhajan_jamming_private_mail
 
 router = APIRouter()
 
@@ -28,13 +29,14 @@ async def create_bhajan_jamming_form(
     db.add(bhajan_jamming_entry)
     db.commit()
     db.refresh(bhajan_jamming_entry)
-    # if(email_address):
-    #     background_tasks.add_task(send_bhajan_jamming_email, bhajan_jamming_entry)
+    
+    background_tasks.add_task(bhajan_jamming_free_mail, bhajan_jamming_entry)
 
     return {"status": "Bhajan Jamming form submitted successfully"}
 
 @router.post("/bhajan-jamming/private")
 async def create_private_booking(
+    background_tasks: BackgroundTasks,
     full_name: str = Form(...),
     age: int = Form(...),
     contact_number: str = Form(...),
@@ -61,6 +63,8 @@ async def create_private_booking(
         db.commit()
         db.refresh(entry)
 
+        background_tasks.add_task(bhajan_jamming_private_mail, entry)
+
         return {
             "message": "Booking submitted successfully"
         }
@@ -71,30 +75,3 @@ async def create_private_booking(
             status_code=500,
             detail=str(e)
         )
-async def send_bhajan_jamming_email(data):
-    email_body = f"""
-    Hello {data.full_name},
-    
-    You’re warmly invited to join an Open Bhajan Jamming Session by TirthGhumo — a simple evening to sit together, sing bhajans, and experience a peaceful devotional vibe.
-
-    Event Details
-    📅 Date: 29th March 2026
-    ⏰ Time: 6:30 PM onwards
-    📍 Venue: Oh!Waah Momo & Waffle Cafe, Siddharth Lake City , Bhopal
-    🎟 Entry: Free & Open for All
-
-    Feel free to come with friends and be part of this beautiful evening.
-
-    Warm regards,
-    Team TirthGhumo
-    """
-    email = {
-        "from": "Tirth Ghumo <no-reply@tirthghumo.in>",
-        "to": [data.email_address],
-        "subject": "Open Bhajan Jamming Session Invitation 🎶",
-        "text": email_body.strip()
-    }
-    try:
-        resend.Emails.send(email)
-    except Exception as e:
-        raise Exception(f"Bhajan Jamming email sending failed: {str(e)}")

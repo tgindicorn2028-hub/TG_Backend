@@ -34,7 +34,7 @@ async def send_enquiry_email(data):
 
     email = {
         "from": "Tirth Ghumo <no-reply@tirthghumo.in>",
-        "to": ["ceo.tirthghumo@gmail.com"],
+        "to": ["enquiry.tirthghumo@gmail.com"],
         "subject": "New Travel Enquiry Received",
         "text": email_body.strip(),
     }
@@ -52,7 +52,7 @@ async def send_enquiry_popup_mail(data):
     """
 
     email_body = f"""
-    New Enquiry Popup Received
+    New Enquiry  Received
 
     Full Name         : {data.full_name}
     Contact Number    : {data.contact_number}
@@ -61,13 +61,14 @@ async def send_enquiry_popup_mail(data):
 
     email = {
         "from": "Tirth Ghumo <no-reply@tirthghumo.in>",
-        "to": ["hr.tirthghumo@gmail.com"],
+        "to": ["enquiry.tirthghumo@gmail.com"],
         "subject": "New Enquiry Popup Received",
         "text": email_body.strip(), 
     }
 
     try:
         resend.Emails.send(email)
+        print("Email sent successfully")
         return {"status": "Enquiry popup email sent successfully"}
     except Exception as e:
         raise Exception(f"Enquiry popup email sending failed: {str(e)}")
