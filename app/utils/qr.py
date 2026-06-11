@@ -432,6 +432,25 @@ async def generate_odt_qr(
       "amount": amount
   }  
 
+@router.get("/divya-drishti/qr")
+async def generate_divya_drishti_qr(
+  persons: int,
+  partial:bool , 
+  db: Session = Depends(get_db)
+):
+  booking_price = 199 * persons
+
+  if not partial:
+    booking_price +=  persons
+  
+
+  qr_url = create_qr_base64(booking_price)
+
+  return {
+      "payment_qr_url": qr_url,
+      "amount": booking_price
+  }
+
 
 
 

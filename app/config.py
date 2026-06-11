@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     supabase_key: str
     supabase_service_role_key: str
     base_url:str
+    # twilio_account_sid: str
+    # twilio_auth_token: str
+    # twilio_whatsapp_from: str
+    WHATSAPP_PHONE_NUMBER_ID: str
+    WHATSAPP_ACCESS_TOKEN: str
 
     class Config:
         env_file = ".env"

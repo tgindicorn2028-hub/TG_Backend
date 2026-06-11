@@ -90,3 +90,15 @@ def upload_to_supabase_qr(file_path: str, folder: str) -> str:
     )
 
     return supabase.storage.from_(BUCKET).get_public_url(storage_path)
+
+def upload_to_supabase_bytes(file_bytes, filename: str, content_type: str, folder: str) -> str:
+    file_path = f"{folder}/{uuid.uuid4()}_{filename}"
+
+    supabase.storage.from_("data").upload(
+        path=file_path,
+        file=file_bytes.read(),
+        file_options={"content-type": content_type}
+    )
+
+    public_url = supabase.storage.from_("data").get_public_url(file_path)
+    return public_url
