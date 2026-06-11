@@ -6,9 +6,9 @@ resend.api_key = settings.resend_api_key
 
 async def send_admin_vr_darshan_email(booking):
 
-    approve_url = f"http://127.0.0.1:8000/divya-drishti/approve/booking_id={booking.id}"
-    decline_payment_url = f"https://web-production-60ea6.up.railway.app/admin/vr-darshan/action?booking_id={booking.id}&action=decline_payment"
-    decline_other_url = f"https://web-production-60ea6.up.railway.app/admin/vr-darshan/action?booking_id={booking.id}&action=decline_other"
+    approve_url = f"https://web-production-60ea6.up.railway.app/divya-drishti/approve/booking_id={booking.id}"
+    decline_url = f"https://web-production-60ea6.up.railway.app/divya-drishti/reject/booking_id={booking.id}"
+    # decline_other_url = f"https://web-production-60ea6.up.railway.app/admin/vr-darshan/action?booking_id={booking.id}&action=decline_other"
 
     payment_screenshot_html = (
         f'<a href="{booking.payment_screenshot}" target="_blank" style="color:#7C3AED;font-weight:600;text-decoration:none;">View Screenshot ↗</a>'
@@ -118,25 +118,15 @@ async def send_admin_vr_darshan_email(booking):
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
                 <tr>
                   <td>
-                    <a href="{decline_payment_url}" target="_blank"
+                    <a href="{decline_url}" target="_blank"
                        style="display:block;background:#FFFFFF;color:#DC2626;text-decoration:none;font-size:14px;font-weight:700;text-align:center;padding:13px 24px;border-radius:8px;letter-spacing:0.5px;border:2px solid #FCA5A5;">
-                      ❌ &nbsp; Decline — Payment Not Received
+                      ❌ &nbsp; Decline — Booking Declined
                     </a>
                   </td>
                 </tr>
               </table>
 
-              <!-- Decline Other -->
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td>
-                    <a href="{decline_other_url}" target="_blank"
-                       style="display:block;background:#FFFFFF;color:#6B7280;text-decoration:none;font-size:14px;font-weight:700;text-align:center;padding:13px 24px;border-radius:8px;letter-spacing:0.5px;border:2px solid #E5E7EB;">
-                      ✖ &nbsp; Decline — Other Reason
-                    </a>
-                  </td>
-                </tr>
-              </table>
+              
 
             </td>
           </tr>

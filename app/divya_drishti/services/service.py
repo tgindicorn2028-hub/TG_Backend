@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone , date , time , timedelta
 import qrcode
+import asyncio
 import os
 from fastapi import HTTPException, status , BackgroundTasks, UploadFile 
 from typing import List
@@ -8,6 +9,7 @@ from app.utils.supabase_uploads import upload_to_supabase
 from ..models import DarshanBooking, DarshanSession, DarshanReview  , SessionExtension
 from ..schema import DarshanBookingCreate, DarshanReviewCreate , CompleteBookingDetails 
 from app.utils.mail.vr_admin_mail import send_admin_vr_darshan_email
+from app.utils.mail.vr_user_mail import send_user_approval_mail 
 import qrcode
 import io
 from app.utils.supabase_uploads import upload_to_supabase_bytes
@@ -192,6 +194,7 @@ def book_session(
     new_booking = DarshanBooking(
         full_name=booking_in.full_name,
         contact_number=booking_in.contact_number,
+        email_address=booking_in.email_address,
         whatsapp_number=booking_in.whatsapp_number,
         address=booking_in.address,
         persons=booking_in.persons,
@@ -279,7 +282,6 @@ def get_bookings(db: Session):
             detail=f"An error occurred while fetching bookings: {str(e)}"
         )
 
-
 def approve_booking(db: Session, booking_id: int, background_tasks: BackgroundTasks) -> DarshanBooking:
     booking = db.query(DarshanBooking).filter(DarshanBooking.id == booking_id).first()
     if not booking:
@@ -316,23 +318,11 @@ def approve_booking(db: Session, booking_id: int, background_tasks: BackgroundTa
     try:
         db.commit()
         db.refresh(booking)
-        # Send WhatsApp in background so API responds instantly
-        # background_tasks.add_task(send_whatsapp_booking_confirmation, booking)
-        send_whatsapp_message(
-        booking.contact_number,
-        f"""
-    Namaste {booking.full_name}
-
-    Your Divya Drishti booking has been approved.
-
-    Booking ID: {booking.id}
-
-    Slot: {booking.slot_time}
-
-    Please carry your QR code.
-    """
-    )
-        print("Booking approved and WhatsApp task added to background")
+        asyncio.run(
+            send_user_approval_mail(booking)
+        )
+        
+    
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to approve booking: {str(e)}")

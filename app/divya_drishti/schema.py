@@ -2,32 +2,11 @@ from pydantic import BaseModel, Field, validator
 from typing import Optional
 from datetime import datetime , date , time 
 
-class DarshanSlotResponse(BaseModel):
-    id: int
-    date: date
-    start_time: time
-    end_time: time
-    is_available: bool
-    booking_id: Optional[int] = None
-    created_at: datetime
 
-    class Config:
-        from_attributes = True
-
-
-class SlotGenerateRequest(BaseModel):
-    date: str = Field(..., description="Date in YYYY-MM-DD format")
-
-    @validator("date")
-    def validate_date_format(cls, v):
-        try:
-            datetime.strptime(v, "%Y-%m-%d")
-        except ValueError:
-            raise ValueError("Date must be in YYYY-MM-DD format")
-        return v
 
 class DarshanBookingCreate(BaseModel):
     full_name: str = Field(..., min_length=2, max_length=150)
+    email_address: str = Field(..., min_length=5, max_length=255)
     contact_number: str = Field(..., min_length=10, max_length=15)
     whatsapp_number: str = Field(..., min_length=10, max_length=15)
     address: str = Field(..., min_length=5)
@@ -36,7 +15,7 @@ class DarshanBookingCreate(BaseModel):
     slot_date: date = Field(...)
     
 
-    @validator("full_name", "contact_number", "whatsapp_number", "address", "slot_time" )
+    @validator("full_name", "contact_number", "whatsapp_number", "address", "slot_time" , "email_address" )
     def no_empty_or_blank(cls, v):
         if v is None or not v.strip():
             raise ValueError("Field cannot be empty or blank")

@@ -1,77 +1,77 @@
-# routes/admin_vr_darshan.py
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.database import get_db
-from app import models
-from app.utils.mail.vr_user_mail import (
-    send_user_approval_mail,
-    send_user_decline_age_mail,
-    send_user_decline_payment_mail
-)
-from app.utils.mail.manali import (
-    send_user_approval_mail_manali,
-    send_user_decline_payment_mail_manali
-)
+# # routes/admin_vr_darshan.py
+# from fastapi import APIRouter, Depends, HTTPException
+# from sqlalchemy.orm import Session
+# from app.database import get_db
+# from app import models
+# from app.utils.mail.vr_user_mail import (
+#     send_user_approval_mail,
+#     send_user_decline_age_mail,
+#     send_user_decline_payment_mail
+# )
+# from app.utils.mail.manali import (
+#     send_user_approval_mail_manali,
+#     send_user_decline_payment_mail_manali
+# )
 
 
-router = APIRouter()
+# router = APIRouter()
 
-@router.get("/admin/vr-darshan/action")
-async def admin_action(
-    booking_id: int,
-    action: str,
-    db: Session = Depends(get_db)
-):
-    booking = db.query(models.VRDarshanBooking).filter(
-        models.VRDarshanBooking.id == booking_id
-    ).first()
+# @router.get("/admin/vr-darshan/action")
+# async def admin_action(
+#     booking_id: int,
+#     action: str,
+#     db: Session = Depends(get_db)
+# ):
+#     booking = db.query(models.VRDarshanBooking).filter(
+#         models.VRDarshanBooking.id == booking_id
+#     ).first()
 
-    if not booking:
-        raise HTTPException(404, "Booking not found")
+#     if not booking:
+#         raise HTTPException(404, "Booking not found")
 
 
-    if action == "approve":
+#     if action == "approve":
         
-        await send_user_approval_mail(booking)
+#         await send_user_approval_mail(booking)
 
-    elif action == "decline_age":
-        await send_user_decline_age_mail(booking)
+#     elif action == "decline_age":
+#         await send_user_decline_age_mail(booking)
 
-    elif action == "decline_payment":
-        await send_user_decline_payment_mail(booking)
+#     elif action == "decline_payment":
+#         await send_user_decline_payment_mail(booking)
 
-    else:
-        raise HTTPException(400, "Invalid action")
+#     else:
+#         raise HTTPException(400, "Invalid action")
 
-    db.commit()
+#     db.commit()
 
-    return {"message": "Action completed and user notified"}
+#     return {"message": "Action completed and user notified"}
 
 
 
-@router.get("/admin/manali/action")
-async def admin_action(
-    booking_id: int,
-    action: str,
-    db: Session = Depends(get_db)
-):
-    booking = db.query(models.ManaliTripBooking).filter(
-        models.ManaliTripBooking.id == booking_id
-    ).first()
+# @router.get("/admin/manali/action")
+# async def admin_action(
+#     booking_id: int,
+#     action: str,
+#     db: Session = Depends(get_db)
+# ):
+#     booking = db.query(models.ManaliTripBooking).filter(
+#         models.ManaliTripBooking.id == booking_id
+#     ).first()
 
-    if not booking:
-        raise HTTPException(404, "Booking not found")
+#     if not booking:
+#         raise HTTPException(404, "Booking not found")
 
-    if action == "approve":
-        booking.is_confirmed = True
-        await send_user_approval_mail_manali(booking)
+#     if action == "approve":
+#         booking.is_confirmed = True
+#         await send_user_approval_mail_manali(booking)
 
-    elif action == "decline_payment":
-        await send_user_decline_payment_mail_manali(booking)
+#     elif action == "decline_payment":
+#         await send_user_decline_payment_mail_manali(booking)
 
-    else:
-        raise HTTPException(400, "Invalid action")
+#     else:
+#         raise HTTPException(400, "Invalid action")
 
-    db.commit()
+#     db.commit()
 
-    return {"message": "Action completed and user notified"}
+#     return {"message": "Action completed and user notified"}

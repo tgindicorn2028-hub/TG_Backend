@@ -1,92 +1,214 @@
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-from app.config import settings 
-import requests
-import resend 
-import base64
-import os
+import resend
+from app.config import settings
 
 resend.api_key = settings.resend_api_key
 
-# utils/mail/user_vr_darshan_mails.py
-import resend
 
-async def send_user_approval_mail(b):
-    resend.Emails.send({
-        "from": "Tirth Ghumo <no-reply@tirthghumo.in>",
-        "to": [b.email_address],
-        "subject": "🙏 Your VR Darshan is Confirmed",
-        "text": f"""
-Hello 😊,
+async def send_user_approval_mail(booking):
 
-We’re happy to let you know that your **VR Darshan booking has been confirmed** 🙏🌼
+    print("========== USER APPROVAL MAIL ==========")
+    print("Booking ID:", booking.id)
+    print("Email:", booking.email_address)
+    print("QR:", booking.qr_code)
+    print("========================================")
 
-On "{b.preferred_date}" at "{b.time_slot}", our "Saarthi will come to your place" to help you experience the darshan in a calm and comfortable way.  
-Before coming, **our Saarthi will call you** to inform and coordinate with you .
+    qr_html = ""
 
-Please don’t worry about anything 🤍  
-Our Saarthi will handle the setup and gently guide you, so you can sit peacefully and enjoy the darshan 🕊️
+    if booking.qr_code:
+        qr_html = f"""
+        <div style="text-align:center;margin:30px 0;">
+            <img
+                src="{booking.qr_code}"
+                alt="QR Code"
+                width="220"
+                style="border:1px solid #E5E7EB;padding:12px;border-radius:12px;background:#FFFFFF;"
+            />
+        </div>
+        """
 
-If you ever need to **change the date or time**, that’s completely okay 😊  
-Just **send us a message on {6260499299} at least 24 hours before**. We’re always happy to help 🌸
+    html_body = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VR Darshan Booking Confirmed</title>
+</head>
 
-We hope this darshan brings peace to your heart and a gentle smile to your face 😊🌷  
-Thank you for trusting us 🤍
+<body style="margin:0;padding:0;background:#F5F3FF;font-family:'Segoe UI',Arial,sans-serif;">
 
-With warm wishes,  
-Team TirthGhumo 🌼
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 0;background:#F5F3FF;">
+<tr>
+<td align="center">
 
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+<!-- Header -->
+<tr>
+<td style="background:linear-gradient(135deg,#4C1D95,#7C3AED);padding:35px;border-radius:12px 12px 0 0;">
+
+<p style="margin:0;font-size:12px;color:#C4B5FD;font-weight:700;letter-spacing:2px;">
+TIRTH GHUMO • DIVYA DRISHTI
+</p>
+
+<h1 style="margin:12px 0 0 0;color:#FFFFFF;font-size:28px;">
+🙏 Booking Confirmed
+</h1>
+
+<p style="margin:10px 0 0 0;color:#DDD6FE;">
+Booking ID # {booking.id}
+</p>
+
+</td>
+</tr>
+
+<!-- Main Body -->
+<tr>
+<td style="background:#FFFFFF;padding:35px;">
+
+<h2 style="color:#111827;">
+Namaste {booking.full_name} 🙏
+</h2>
+
+<p style="font-size:15px;color:#4B5563;line-height:1.8;">
+We are delighted to inform you that your
+<strong>Divya Drishti VR Darshan booking has been approved.</strong>
+</p>
+
+<p style="font-size:15px;color:#4B5563;line-height:1.8;">
+Our Saarthi will visit your location and assist you throughout the VR Darshan experience.
+</p>
+
+<!-- Booking Details -->
+
+<h3 style="color:#7C3AED;margin-top:30px;">
+📋 Booking Details
+</h3>
+
+<table width="100%" cellpadding="0" cellspacing="0"
+style="border:1px solid #E5E7EB;border-radius:10px;overflow:hidden;">
+
+<tr style="background:#F5F3FF;">
+<td style="padding:12px;font-weight:600;">Booking ID</td>
+<td style="padding:12px;">#{booking.id}</td>
+</tr>
+
+<tr>
+<td style="padding:12px;font-weight:600;">Date</td>
+<td style="padding:12px;">{booking.slot_date}</td>
+</tr>
+
+<tr style="background:#F5F3FF;">
+<td style="padding:12px;font-weight:600;">Time Slot</td>
+<td style="padding:12px;">{booking.slot_time}</td>
+</tr>
+
+<tr>
+<td style="padding:12px;font-weight:600;">Persons</td>
+<td style="padding:12px;">{booking.persons}</td>
+</tr>
+
+<tr style="background:#F5F3FF;">
+<td style="padding:12px;font-weight:600;">Status</td>
+<td style="padding:12px;color:#059669;font-weight:700;">
+Approved
+</td>
+</tr>
+
+</table>
+
+<!-- QR -->
+
+<h3 style="color:#7C3AED;margin-top:30px;text-align:center;">
+🎫 Your Entry QR Code
+</h3>
+
+{qr_html}
+
+<p style="text-align:center;color:#6B7280;">
+Please keep this QR code available during your session.
+</p>
+
+<!-- Instructions -->
+
+<h3 style="color:#7C3AED;margin-top:30px;">
+📝 Important Instructions
+</h3>
+
+<ul style="color:#4B5563;line-height:1.8;">
+<li>Please be available 15 minutes before your scheduled slot.</li>
+<li>Keep your phone reachable.</li>
+<li>Our Saarthi will contact you before arrival.</li>
+<li>If you need to reschedule, contact us at least 24 hours before the session.</li>
+</ul>
+
+<!-- Support -->
+
+<div style="margin-top:30px;background:#F9FAFB;padding:18px;border-radius:10px;">
+
+<p style="margin:0;">
+📞 Support: +91 6260499299
+</p>
+
+<p style="margin-top:8px;">
+📧 enquiry.tirthghumo@gmail.com
+</p>
+
+</div>
+
+<p style="margin-top:30px;color:#4B5563;">
+We hope this spiritual experience brings peace, positivity and divine blessings into your life. 🌸🙏
+</p>
+
+<p style="margin-top:25px;">
+Warm Regards,<br>
+<strong>Team TirthGhumo</strong><br>
+Divya Drishti VR Darshan
+</p>
+
+</td>
+</tr>
+
+<!-- Footer -->
+
+<tr>
+<td style="background:#F5F3FF;border:1px solid #EDE9FE;border-top:none;border-radius:0 0 12px 12px;padding:20px;text-align:center;">
+
+<p style="margin:0;font-size:11px;color:#9CA3AF;">
+Automated confirmation email from TirthGhumo
+</p>
+
+<p style="margin-top:6px;font-size:11px;color:#9CA3AF;">
+Please do not reply to this email.
+</p>
+
+</td>
+</tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>
 """
-    })
 
-
-async def send_user_decline_age_mail(b):
-    resend.Emails.send({
+    email = {
         "from": "Tirth Ghumo <no-reply@tirthghumo.in>",
-        "to": [b.email_address],
-        "subject": "🙏 Regarding Your VR Darshan Booking",
-        "text": """
-Hello 😊,
+        "to": [booking.email_address],
+        "subject": f"🙏 Divya Drishti Booking Confirmed | Booking #{booking.id}",
+        "html": html_body,
+    }
 
-Thank you so much for your interest in VR Darshan and for sharing your details with us 🙏  
-We truly appreciate the trust you have shown in TirthGhumo 🌸
+    try:
+        response = resend.Emails.send(email)
+        print("MAIL SENT SUCCESSFULLY")
+        print(response)
+        return response
 
-After carefully checking the information, we noticed that the **age mentioned in the ID proof does not match the age entered in the form**.  
-Because of this, we are unable to proceed with the booking at this moment .
-
-If you would like to **update or correct the details**, you are most. welcome to contact us directly on this number {6260499299}  
-We will be happy to guide you and help you with the next steps 😊
-
-Thank you once again for your understanding and patience 🌼  
-We truly hope to serve you soon and be part of your spiritual journey 🙏✨
-
-With warm regards,  
-**Team TirthGhumo** 🌸
-"""
-    })
-
-
-async def send_user_decline_payment_mail(b):
-    resend.Emails.send({
-        "from": "Tirth Ghumo <no-reply@tirthghumo.in>",
-        "to": [b.email_address],
-        "subject": "🙏 Regarding Your VR Darshan Booking",
-        "text": """
-Hello 😊,
-
-Thank you so much for your interest in VR Darshan and for sharing your details with us 🙏  
-We truly appreciate the trust you have shown in TirthGhumo 🌸.
-
-We wanted to let you know that we've reviewed your recent booking attempt.
-Unfortunately, we couldn’t verify the payment details on our end.
-
-This might be due to a mismatch in the transaction ID or some other discrepancy.
-
-If you believe this is an error, please feel free to reach out to us at
-{6260499299} — we’ll be happy to help resolve the issue.
-
-We appreciate your understanding and hope to welcome you on another adventure soon.
-
-Warm regards,
-Team TirthGhumo
-"""
-    })
+    except Exception as e:
+        print("MAIL FAILED")
+        print(str(e))
+        raise Exception(f"Failed to send approval email: {str(e)}")

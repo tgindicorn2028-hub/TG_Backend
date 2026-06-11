@@ -34,6 +34,7 @@ router = APIRouter(
 async def book_session(
     background_tasks: BackgroundTasks,
     full_name: str = Form(...),
+    email_address: str = Form(...),
     contact_number: str = Form(...),
     whatsapp_number: str = Form(...),
     address: str = Form(...),
@@ -46,6 +47,7 @@ async def book_session(
 
     booking_in = DarshanBookingCreate(
         full_name=full_name,
+        email_address=email_address,
         contact_number=contact_number,
         whatsapp_number=whatsapp_number,
         address=address,
@@ -80,10 +82,10 @@ async def update_booking(
 
 @router.patch("/approve/{booking_id}", response_model=DarshanBookingResponse)
 def approve_booking(booking_id: int, db: Session = Depends(get_db)):
-    return service.approve_booking(db, booking_id , background_tasks=BackgroundTasks())
+    return  service.approve_booking(db, booking_id , background_tasks=BackgroundTasks())
 
 @router.patch("/reject/{booking_id}", response_model=DarshanBookingResponse)
-def reject_booking(booking_id: int, db: Session = Depends(get_db)):
+async  def reject_booking(booking_id: int, db: Session = Depends(get_db)):
     return service.reject_booking(db, booking_id)
 
 @router.post("/verify-qr", response_model=DarshanBookingResponse)
