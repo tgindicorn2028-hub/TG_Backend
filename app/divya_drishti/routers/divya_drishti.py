@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, status, UploadFile, File, Form, Backgrou
 from sqlalchemy.orm import Session
 from datetime import date
 from fastapi.responses import HTMLResponse
+from urllib.parse import quote
 from app.database import get_db
 from ..schema import (
     DarshanBookingCreate,
@@ -79,7 +80,9 @@ async def update_booking(
         payment_mode=payment_mode
     )
     return service.complete_booking_details(db, booking_id, booking_in, full_payment_screenshot, background_tasks)
-from fastapi.responses import HTMLResponse
+
+
+
 
 
 @router.get("/approve-booking/{booking_id}")
@@ -87,40 +90,118 @@ def approve_booking_email(
     booking_id: int,
     db: Session = Depends(get_db)
 ):
-    service.approve_booking(
+    booking = service.approve_booking(
         db,
         booking_id,
         BackgroundTasks()
     )
 
-    return HTMLResponse("""
+    whatsapp_message = f"""
+Namaste {booking.full_name} 🙏
+
+Your Divya Drishti VR Darshan booking has been approved.
+
+Booking ID: #{booking.id}
+
+Date: {booking.slot_date}
+
+Time: {booking.slot_time}
+
+Persons: {booking.persons}
+
+Our Saarthi will contact you before arrival.
+
+Team TirthGhumo
+"""
+
+    whatsapp_url = (
+        f"https://wa.me/91{booking.whatsapp_number}"
+        f"?text={quote(whatsapp_message)}"
+    )
+
+    return HTMLResponse(f"""
     <html>
-        <body style="font-family:Arial;text-align:center;padding-top:50px;">
-            <h2>✅ Booking Approved Successfully</h2>
-            <p>You can close this window.</p>
-        </body>
+    <body style="
+        font-family:Arial;
+        text-align:center;
+        padding-top:50px;
+        background:#f8fafc;
+    ">
+
+        <h2 style="color:green;">
+            ✅ Booking Approved Successfully
+        </h2>
+
+        <br>
+
+        <a href="{booking.qr_code}"
+           target="_blank"
+           style="
+             background:#2563EB;
+             color:white;
+             padding:12px 20px;
+             text-decoration:none;
+             border-radius:8px;
+             margin-right:10px;
+           ">
+           🖼 View QR Code
+        </a>
+
+        <a href="{whatsapp_url}"
+           target="_blank"
+           style="
+             background:#25D366;
+             color:white;
+             padding:12px 20px;
+             text-decoration:none;
+             border-radius:8px;
+           ">
+           📱 Send WhatsApp Message
+        </a>
+
+    </body>
     </html>
     """)
-
 
 @router.get("/reject-booking/{booking_id}")
 def reject_booking_email(
     booking_id: int,
     db: Session = Depends(get_db)
 ):
-    service.reject_booking(
-        db,
-        booking_id
+    booking = service.reject_booking(db, booking_id)
+
+    whatsapp_message = f"""
+Namaste {booking.full_name} 🙏
+
+Unfortunately, your Divya Drishti booking could not be approved.
+
+Booking ID: #{booking.id}
+
+For assistance please contact:
++91 6260499299
+
+Team TirthGhumo
+"""
+
+    whatsapp_url = (
+        f"https://wa.me/91{booking.whatsapp_number}"
+        f"?text={quote(whatsapp_message)}"
     )
 
-    return HTMLResponse("""
+    return HTMLResponse(f"""
     <html>
         <body style="font-family:Arial;text-align:center;padding-top:50px;">
             <h2>❌ Booking Rejected Successfully</h2>
-            <p>You can close this window.</p>
+
+            <a href="{whatsapp_url}"
+               style="background:#25D366;color:white;padding:12px 20px;
+                      text-decoration:none;border-radius:8px;">
+               Send WhatsApp Message
+            </a>
         </body>
     </html>
     """)
+
 @router.patch("/approve/{booking_id}", response_model=DarshanBookingResponse)
 def approve_booking(booking_id: int, db: Session = Depends(get_db)):
     return  service.approve_booking(db, booking_id , background_tasks=BackgroundTasks())
