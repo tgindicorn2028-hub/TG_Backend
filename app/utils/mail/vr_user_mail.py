@@ -327,7 +327,7 @@ If you believe this was a mistake or would like to book another slot, please con
 </p>
 
 <p style="margin-top:8px;">
-📧 support@tirthghumo.in
+📧 enquiry.@tirthghumo.com
 </p>
 
 </div>
