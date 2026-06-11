@@ -317,9 +317,7 @@ def approve_booking(db: Session, booking_id: int, background_tasks: BackgroundTa
     try:
         db.commit()
         db.refresh(booking)
-        asyncio.run(
-            send_user_approval_mail(booking)
-        )
+        
         
     
     except Exception as e:
@@ -348,9 +346,7 @@ def reject_booking(db: Session, booking_id: int) -> DarshanBooking:
     try:
         db.commit()
         db.refresh(booking)
-        asyncio.run(
-            send_user_decline_mail(booking)
-        )
+        
     except Exception as e:
         db.rollback()
         raise HTTPException(
