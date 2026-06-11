@@ -1,6 +1,6 @@
 WEEKDAY_SLOTS = [
-    "07:30",
-    "09:00"
+    "19:30",
+    "21:00"
 ]
 
 WEEKEND_SLOTS = [

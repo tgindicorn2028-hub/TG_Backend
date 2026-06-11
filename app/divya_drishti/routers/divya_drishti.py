@@ -97,21 +97,37 @@ def approve_booking_email(
     )
 
     whatsapp_message = f"""
-Namaste {booking.full_name} 🙏
+🙏 *Divya Drishti VR Darshan Booking Confirmed*
 
-Your Divya Drishti VR Darshan booking has been approved.
+Namaste {booking.full_name},
 
-Booking ID: #{booking.id}
+We are delighted to inform you that your booking has been approved.
 
-Date: {booking.slot_date}
+📋 *Booking Details*
 
-Time: {booking.slot_time}
+• Booking ID: #{booking.id}
+• Date: {booking.slot_date}
+• Time Slot: {booking.slot_time}
+• Persons: {booking.persons}
 
-Persons: {booking.persons}
+🎫 Your QR Code:
+{booking.qr_code}
 
-Our Saarthi will contact you before arrival.
+📝 Important Instructions
 
-Team TirthGhumo
+• Please be available 15 minutes before your scheduled slot.
+• Keep your phone reachable.
+• Our Saarthi will contact you before arrival.
+• If you need to reschedule, contact us at least 24 hours before the session.
+
+📞 Support: +91 6260499299
+📧 enquiry.tirthghumo@gmail.com
+
+We hope this spiritual experience brings peace, positivity and divine blessings into your life. 🌸🙏
+
+Warm Regards,
+*Team TirthGhumo*
+Divya Drishti VR Darshan
 """
 
     whatsapp_url = (
@@ -170,22 +186,48 @@ def reject_booking_email(
 ):
     booking = service.reject_booking(db, booking_id)
 
-    whatsapp_message = f"""
-Namaste {booking.full_name} 🙏
+    decline_message = f"""
+🙏 *Divya Drishti VR Darshan Booking Update*
 
-Unfortunately, your Divya Drishti booking could not be approved.
+Namaste {booking.full_name},
 
-Booking ID: #{booking.id}
+Thank you for choosing Divya Drishti VR Darshan.
 
-For assistance please contact:
-+91 6260499299
+After reviewing your booking request, we regret to inform you that we are currently unable to approve your booking.
 
-Team TirthGhumo
+❌ *Booking Status: Declined*
+
+📋 *Booking Details*
+
+• Booking ID: #{booking.id}
+• Date: {booking.slot_date}
+• Time Slot: {booking.slot_time}
+• Persons: {booking.persons}
+
+This may happen due to:
+
+• Slot availability issues
+• Payment verification issues
+• Incomplete booking information
+• Operational limitations for the selected schedule
+
+If you believe this was a mistake or would like to book another slot, please contact our support team.
+
+📞 Support: +91 6260499299
+📧 enquiry.tirthghumo@gmail.com
+
+We sincerely apologize for any inconvenience caused and hope to serve you in the future. 🌸🙏
+
+Warm Regards,
+*Team TirthGhumo*
+Divya Drishti VR Darshan
 """
+
+
 
     whatsapp_url = (
         f"https://wa.me/91{booking.whatsapp_number}"
-        f"?text={quote(whatsapp_message)}"
+        f"?text={quote(decline_message)}"
     )
 
     return HTMLResponse(f"""
