@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.orm import Session
 from datetime import date
-
+from fastapi.responses import HTMLResponse
 from app.database import get_db
 from ..schema import (
     DarshanBookingCreate,
@@ -79,7 +79,48 @@ async def update_booking(
         payment_mode=payment_mode
     )
     return service.complete_booking_details(db, booking_id, booking_in, full_payment_screenshot, background_tasks)
+from fastapi.responses import HTMLResponse
 
+
+@router.get("/approve-booking/{booking_id}")
+def approve_booking_email(
+    booking_id: int,
+    db: Session = Depends(get_db)
+):
+    service.approve_booking(
+        db,
+        booking_id,
+        BackgroundTasks()
+    )
+
+    return HTMLResponse("""
+    <html>
+        <body style="font-family:Arial;text-align:center;padding-top:50px;">
+            <h2>✅ Booking Approved Successfully</h2>
+            <p>You can close this window.</p>
+        </body>
+    </html>
+    """)
+
+
+@router.get("/reject-booking/{booking_id}")
+def reject_booking_email(
+    booking_id: int,
+    db: Session = Depends(get_db)
+):
+    service.reject_booking(
+        db,
+        booking_id
+    )
+
+    return HTMLResponse("""
+    <html>
+        <body style="font-family:Arial;text-align:center;padding-top:50px;">
+            <h2>❌ Booking Rejected Successfully</h2>
+            <p>You can close this window.</p>
+        </body>
+    </html>
+    """)
 @router.patch("/approve/{booking_id}", response_model=DarshanBookingResponse)
 def approve_booking(booking_id: int, db: Session = Depends(get_db)):
     return  service.approve_booking(db, booking_id , background_tasks=BackgroundTasks())

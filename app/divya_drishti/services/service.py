@@ -9,7 +9,7 @@ from app.utils.supabase_uploads import upload_to_supabase
 from ..models import DarshanBooking, DarshanSession, DarshanReview  , SessionExtension
 from ..schema import DarshanBookingCreate, DarshanReviewCreate , CompleteBookingDetails 
 from app.utils.mail.vr_admin_mail import send_admin_vr_darshan_email
-from app.utils.mail.vr_user_mail import send_user_approval_mail 
+from app.utils.mail.vr_user_mail import send_user_approval_mail  , send_user_decline_mail
 import qrcode
 import io
 from app.utils.supabase_uploads import upload_to_supabase_bytes
@@ -349,6 +349,9 @@ def reject_booking(db: Session, booking_id: int) -> DarshanBooking:
     try:
         db.commit()
         db.refresh(booking)
+        asyncio.run(
+            send_user_decline_mail(booking)
+        )
     except Exception as e:
         db.rollback()
         raise HTTPException(
