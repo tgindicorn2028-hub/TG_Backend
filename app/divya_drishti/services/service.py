@@ -194,7 +194,6 @@ def book_session(
     new_booking = DarshanBooking(
         full_name=booking_in.full_name,
         contact_number=booking_in.contact_number,
-        email_address=booking_in.email_address,
         whatsapp_number=booking_in.whatsapp_number,
         address=booking_in.address,
         persons=booking_in.persons,

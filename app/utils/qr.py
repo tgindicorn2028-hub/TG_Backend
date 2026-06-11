@@ -10,7 +10,7 @@ from app.config import settings
 from fastapi import BackgroundTasks
 from fastapi import Query
 from app.utils.pricing.pachmarhi import get_price_per_person
-
+from math import ceil
 router = APIRouter()
 
 CATALOGUE = {
@@ -438,10 +438,13 @@ async def generate_divya_drishti_qr(
   partial:bool , 
   db: Session = Depends(get_db)
 ):
-  booking_price = 199 * persons
+  occupied_units = ceil(
+        persons / 2
+    )
+  booking_price = 199 * occupied_units
 
   if not partial:
-    booking_price +=  persons
+    booking_price +=  occupied_units 
   
 
   qr_url = create_qr_base64(booking_price)

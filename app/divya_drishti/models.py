@@ -12,7 +12,7 @@ class DarshanBooking(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     full_name = Column(String(150), nullable=False)
-    email_address = Column(String(255), nullable=False)
+    # email_address = Column(String(255), nullable=False)
     contact_number = Column(String(15), nullable=False)
     whatsapp_number = Column(String(15), nullable=False)
     address = Column(Text, nullable=False)

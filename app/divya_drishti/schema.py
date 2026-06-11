@@ -6,7 +6,7 @@ from datetime import datetime , date , time
 
 class DarshanBookingCreate(BaseModel):
     full_name: str = Field(..., min_length=2, max_length=150)
-    email_address: str = Field(..., min_length=5, max_length=255)
+    # email_address: str = Field(..., min_length=5, max_length=255)
     contact_number: str = Field(..., min_length=10, max_length=15)
     whatsapp_number: str = Field(..., min_length=10, max_length=15)
     address: str = Field(..., min_length=5)
@@ -15,7 +15,7 @@ class DarshanBookingCreate(BaseModel):
     slot_date: date = Field(...)
     
 
-    @validator("full_name", "contact_number", "whatsapp_number", "address", "slot_time" , "email_address" )
+    @validator("full_name", "contact_number", "whatsapp_number", "address", "slot_time" )
     def no_empty_or_blank(cls, v):
         if v is None or not v.strip():
             raise ValueError("Field cannot be empty or blank")

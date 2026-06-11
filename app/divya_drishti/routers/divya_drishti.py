@@ -35,7 +35,6 @@ router = APIRouter(
 async def book_session(
     background_tasks: BackgroundTasks,
     full_name: str = Form(...),
-    email_address: str = Form(...),
     contact_number: str = Form(...),
     whatsapp_number: str = Form(...),
     address: str = Form(...),
@@ -48,7 +47,6 @@ async def book_session(
 
     booking_in = DarshanBookingCreate(
         full_name=full_name,
-        email_address=email_address,
         contact_number=contact_number,
         whatsapp_number=whatsapp_number,
         address=address,
