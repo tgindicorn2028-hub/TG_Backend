@@ -233,7 +233,7 @@ def complete_booking_details(
     db: Session,
     booking_id: int,
     details: CompleteBookingDetails,
-    full_payment_screenshot: UploadFile,
+    
     background_tasks: BackgroundTasks
 
 ):
@@ -252,19 +252,20 @@ def complete_booking_details(
     booking.darshan_name = details.darshan_name
     booking.payment_mode = details.payment_mode
         # Handle full payment screenshot upload 
-    if full_payment_screenshot:
-        try:
-            full_payment_screenshot_url = upload_to_supabase(
-                full_payment_screenshot,
-                folder="vr_darshan_full_payments"
-            )
-            booking.payment_screenshot = full_payment_screenshot_url
-            booking.payment_status = "full"
-        except Exception as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Full payment screenshot upload failed: {str(e)}"
-            )
+    booking.payment_status = "full"
+    # if full_payment_screenshot:
+    #     try:
+    #         full_payment_screenshot_url = upload_to_supabase(
+    #             full_payment_screenshot,
+    #             folder="vr_darshan_full_payments"
+    #         )
+    #         booking.payment_screenshot = full_payment_screenshot_url
+            
+    #     except Exception as e:
+    #         raise HTTPException(
+    #             status_code=500,
+    #             detail=f"Full payment screenshot upload failed: {str(e)}"
+    #         )
 
 
     db.commit()

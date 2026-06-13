@@ -69,7 +69,7 @@ async def update_booking(
     age: int = Form(...),
     darshan_name: str = Form(...),
     payment_mode: str = Form(...),
-    full_payment_screenshot: UploadFile = File(...),
+    
     db: Session = Depends(get_db)
 ):
     booking_in = CompleteBookingDetails(
@@ -77,7 +77,7 @@ async def update_booking(
         darshan_name=darshan_name,
         payment_mode=payment_mode
     )
-    return service.complete_booking_details(db, booking_id, booking_in, full_payment_screenshot, background_tasks)
+    return service.complete_booking_details(db, booking_id, booking_in, background_tasks)
 
 
 
