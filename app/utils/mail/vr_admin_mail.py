@@ -151,7 +151,7 @@ def send_admin_vr_darshan_email(booking):
 
     resend.Emails.send({
         "from": "Tirth Ghumo <no-reply@tirthghumo.in>",
-        "to": ["tirthghumo@gmail.com"],
+        "to": ["booking.tirthghumo@gmail.com"],
         "subject": f"[Action Required] VR Darshan Booking #{booking.id} — {booking.full_name}",
         "html": html_body,
     })

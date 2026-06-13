@@ -76,7 +76,7 @@ def send_booking_email(
 
     email_payload = {
         "from": "Tirth Ghumo <no-reply@tirthghumo.in>",
-        "to":"tirthghumo@gmail.com",
+        "to":"booking.tirthghumo@gmail.com",
         "subject":"New Trek Booking Verification",
         "html": html_body
     }
