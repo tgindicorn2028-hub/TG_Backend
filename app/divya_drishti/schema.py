@@ -20,11 +20,14 @@ class DarshanBookingCreate(BaseModel):
         if v is None or not v.strip():
             raise ValueError("Field cannot be empty or blank")
         return v
+
+class ParticipantCreate(BaseModel):
+    full_name: str
+    age: int
+    darshan_name: str
 class CompleteBookingDetails(BaseModel):
-    # gender: Optional[str] = Field(None, min_length=1, max_length=20)
-    age: Optional[int] = Field(None, gt=0)
-    darshan_name: Optional[str] = Field(None, min_length=2, max_length=100)
-    payment_mode: Optional[str] = Field(None, min_length=3)
+    participants: list[ParticipantCreate]
+    payment_mode: str
 
 
 class DarshanBookingResponse(BaseModel):

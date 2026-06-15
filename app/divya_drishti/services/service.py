@@ -6,7 +6,7 @@ import os
 from fastapi import HTTPException, status , BackgroundTasks, UploadFile 
 from typing import List
 from app.utils.supabase_uploads import upload_to_supabase
-from ..models import DarshanBooking, DarshanSession, DarshanReview  , SessionExtension
+from ..models import DarshanBooking, DarshanSession, DarshanReview  , SessionExtension , DarshanParticipant
 from ..schema import DarshanBookingCreate, DarshanReviewCreate , CompleteBookingDetails 
 from app.utils.mail.vr_admin_mail import send_admin_vr_darshan_email
 from app.utils.mail.vr_user_mail import send_user_approval_mail  , send_user_decline_mail
@@ -234,8 +234,7 @@ def complete_booking_details(
     booking_id: int,
     details: CompleteBookingDetails,
     
-    background_tasks: BackgroundTasks
-
+   
 ):
     booking = db.query(DarshanBooking).filter(
         DarshanBooking.id == booking_id
@@ -247,25 +246,21 @@ def complete_booking_details(
             detail="Booking not found"
         )
 
-    booking.age = details.age
-    # booking.gender = details.gender
-    booking.darshan_name = details.darshan_name
-    booking.payment_mode = details.payment_mode
-        # Handle full payment screenshot upload 
+    if len(details.participants) != booking.persons :
+        raise HTTPException(
+            status_code=400,
+            detail=f"Expected {booking.persons} participants"
+        )
+    for p in details.participants:
+        participant = DarshanParticipant(
+            booking_id=booking.id,
+            full_name=p.full_name,
+            age=p.age,
+            darshan_name=p.darshan_name
+        )
+        db.add(participant)
     booking.payment_status = "full"
-    # if full_payment_screenshot:
-    #     try:
-    #         full_payment_screenshot_url = upload_to_supabase(
-    #             full_payment_screenshot,
-    #             folder="vr_darshan_full_payments"
-    #         )
-    #         booking.payment_screenshot = full_payment_screenshot_url
-            
-    #     except Exception as e:
-    #         raise HTTPException(
-    #             status_code=500,
-    #             detail=f"Full payment screenshot upload failed: {str(e)}"
-    #         )
+    
 
 
     db.commit()

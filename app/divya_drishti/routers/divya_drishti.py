@@ -20,6 +20,7 @@ from ..schema import (
     SessionExtensionResponse,
 
 )
+from ..models import Executive
 from ..services import service
 
 router = APIRouter(
@@ -61,27 +62,36 @@ async def book_session(
         payment_screenshot,
         background_tasks
     )
-
-@router.put("/update/{booking_id}", response_model=DarshanBookingResponse)
-async def update_booking(
-    background_tasks: BackgroundTasks,
-    booking_id: int,
-    age: int = Form(...),
-    darshan_name: str = Form(...),
-    payment_mode: str = Form(...),
-    
+@router.post("/executive/login")
+def executive_login(
+    username: str = Form(...),
+    password: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    booking_in = CompleteBookingDetails(
-        age=age,    
-        darshan_name=darshan_name,
-        payment_mode=payment_mode
+    executive =db.query(Executive).filter(
+        Executive.username == username,
+        Executive.password == password
+    ).first()
+
+    if not executive:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    return{
+        "success" : True , 
+        "executive_id" : executive.id ,
+        "full_name" : executive.full_name
+    }
+@router.put("/update/{booking_id}", response_model=DarshanBookingResponse)
+async def update_booking(
+    
+    booking_id: int,
+    booking_in: CompleteBookingDetails,
+    db:Session = Depends(get_db),
+):
+    return service.complete_booking_details(
+        db,
+        booking_id,
+        booking_in
     )
-    return service.complete_booking_details(db, booking_id, booking_in, background_tasks)
-
-
-
-
 
 @router.get("/approve-booking/{booking_id}")
 def approve_booking_email(
@@ -109,7 +119,7 @@ We are delighted to inform you that your booking has been approved.
 • Persons: {booking.persons}
 
 🎫 Your QR Code:
-{booking.qr_code}
+<a href="{booking.qr_code}" target="_blank">View QR Code</a>
 
 📝 Important Instructions
 

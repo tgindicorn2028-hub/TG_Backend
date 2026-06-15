@@ -4,8 +4,13 @@ from sqlalchemy.sql import func
 from app.database import Base
 from sqlalchemy import Date, Time, Boolean, Float
 
+class Executive(Base):
+    __tablename__ = "executives"
 
-    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(100), unique=True, nullable=False)
+    password = Column(String(255), nullable=False)
+    full_name = Column(String(150), nullable=False)
 
 class DarshanBooking(Base):
     __tablename__ = "darshan_bookings"
@@ -28,14 +33,36 @@ class DarshanBooking(Base):
     start_datetime = Column(DateTime, nullable=False)
     end_datetime = Column(DateTime, nullable=False)
 
-    age = Column(Integer, nullable=True)
-    darshan_name = Column(String(100), nullable=True)
-    payment_mode = Column(String(50), nullable=True)
+    
     sessions = relationship("DarshanSession", back_populates="booking", cascade="all, delete-orphan")
     reviews = relationship("DarshanReview", back_populates="booking", cascade="all, delete-orphan")
-    
+    participants = relationship("DarshanParticipant",back_populates="booking",cascade="all, delete-orphan")
     extensions = relationship("SessionExtension", back_populates="booking", cascade="all, delete-orphan")
 
+class DarshanParticipant(Base):
+    __tablename__ = "darshan_participants"
+
+    id = Column(Integer, primary_key=True)
+
+    booking_id = Column(
+        Integer,
+        ForeignKey("darshan_bookings.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    full_name = Column(String(150), nullable=False)
+    age = Column(Integer, nullable=False)
+    darshan_name = Column(String(200), nullable=False)
+
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now()
+    )
+
+    booking = relationship(
+        "DarshanBooking",
+        back_populates="participants"
+    )
 class DarshanSession(Base):
     __tablename__ = "darshan_sessions"
 
