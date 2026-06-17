@@ -528,64 +528,7 @@ def create_review(db: Session, review_in: DarshanReviewCreate) -> DarshanReview:
 
 
 
-def check_extension(
-    db: Session,
-    booking_id: int
-):
-    booking = db.query(
-        DarshanBooking
-    ).filter(
-        DarshanBooking.id == booking_id
-    ).first()
 
-    if not booking:
-        raise HTTPException(
-            404,
-            "Booking not found"
-        )
-
-    extension_start = booking.end_datetime
-
-    extension_end = (
-        extension_start
-        + timedelta(minutes=60)
-    )
-
-    other_bookings = db.query(
-        DarshanBooking
-    ).filter(
-        DarshanBooking.slot_date == booking.slot_date,
-        DarshanBooking.id != booking.id,
-        DarshanBooking.status != "rejected"
-    ).all()
-
-    for other in other_bookings:
-
-        if (
-            other.start_datetime is None
-            or
-            other.end_datetime is None
-        ):
-            continue
-
-        overlap = (
-            extension_start < other.end_datetime
-            and
-            extension_end > other.start_datetime
-        )
-
-        if overlap:
-            return {
-                "possible": False,
-                "amount": 0,
-                "message": "Extension not available"
-            }
-
-    return {
-        "possible": True,
-        "amount": 500,
-        "message": "Extension available"
-    }
 
 def extend_session(
     db: Session,
@@ -644,4 +587,62 @@ def extend_session(
         "booking_id": booking.id,
         "participant_name": participant.full_name,
         "is_extension": participant.is_extension
+    }
+def check_extension(
+    db: Session,
+    booking_id: int
+):
+    booking = db.query(
+        DarshanBooking
+    ).filter(
+        DarshanBooking.id == booking_id
+    ).first()
+
+    if not booking:
+        raise HTTPException(
+            404,
+            "Booking not found"
+        )
+
+    extension_start = booking.end_datetime
+
+    extension_end = (
+        extension_start
+        + timedelta(minutes=90)
+    )
+
+    other_bookings = db.query(
+        DarshanBooking
+    ).filter(
+        DarshanBooking.slot_date == booking.slot_date,
+        DarshanBooking.id != booking.id,
+        DarshanBooking.status != "rejected"
+    ).all()
+
+    for other in other_bookings:
+
+        if (
+            other.start_datetime is None
+            or
+            other.end_datetime is None
+        ):
+            continue
+
+        overlap = (
+            extension_start < other.end_datetime
+            and
+            extension_end > other.start_datetime
+        )
+
+        if overlap:
+            return {
+                "possible": False,
+                "amount": 0,
+                "message": "Extension not available"
+            }
+
+    return {
+        "possible": True,
+        "amount": 499,
+        "message": "Extension available"
     }
