@@ -42,6 +42,7 @@ async def book_session(
     persons: int = Form(...),
     slot_time: str = Form(...),
     slot_date: date = Form(...),
+    payment_status:str = Form(...),
     payment_screenshot: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
@@ -53,7 +54,8 @@ async def book_session(
         address=address,
         persons=persons,
         slot_time=slot_time,
-        slot_date=slot_date
+        slot_date=slot_date,
+        payment_status=payment_status
     )
 
     return service.book_session(

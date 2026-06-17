@@ -203,7 +203,7 @@ def book_session(
         start_datetime=start_dt,
         end_datetime=end_dt,
         status="pending",
-        payment_status="partial",
+        payment_status=booking_in.payment_status,
         payment_screenshot=payment_screenshot_url,
     )
 
