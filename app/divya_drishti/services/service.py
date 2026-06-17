@@ -7,7 +7,7 @@ from fastapi import HTTPException, status , BackgroundTasks, UploadFile
 from typing import List
 from app.utils.supabase_uploads import upload_to_supabase
 from ..models import DarshanBooking, DarshanSession, DarshanReview  , SessionExtension , DarshanParticipant
-from ..schema import DarshanBookingCreate, DarshanReviewCreate , CompleteBookingDetails 
+from ..schema import DarshanBookingCreate, DarshanReviewCreate , CompleteBookingDetails , SessionExtensionCreateRequest
 from app.utils.mail.vr_admin_mail import send_admin_vr_darshan_email
 from app.utils.mail.vr_user_mail import send_user_approval_mail  , send_user_decline_mail
 import qrcode
@@ -87,9 +87,7 @@ def book_session(
     background_tasks: BackgroundTasks,
 ) -> DarshanBooking:
 
-    # -------------------------
-    # Upload payment screenshot
-    # -------------------------
+    
 
     payment_screenshot_url = None
 
@@ -105,9 +103,7 @@ def book_session(
                 detail=f"Payment upload failed: {str(e)}"
             )
 
-    # -------------------------
-    # Get valid slots
-    # -------------------------
+    
 
     slots = (
         WEEKEND_SLOTS
@@ -123,9 +119,7 @@ def book_session(
             detail="Invalid slot selected"
         )
 
-    # -------------------------
-    # Calculate booking duration
-    # -------------------------
+    
 
     occupied_units = ceil(
         booking_in.persons / 2
@@ -133,13 +127,11 @@ def book_session(
 
     booking_minutes = occupied_units * 30
 
-    buffer_minutes = 30
+    buffer_minutes = 60
 
     total_minutes = booking_minutes + buffer_minutes
 
-    # -------------------------
-    # Build datetime range
-    # -------------------------
+    
 
     start_dt = datetime.combine(
         booking_in.slot_date,
@@ -596,45 +588,59 @@ def check_extension(
 
 def extend_session(
     db: Session,
-    booking_id: int
+    extend_in: SessionExtensionCreateRequest
 ):
-    booking = db.query(
-        DarshanBooking
-    ).filter(
-        DarshanBooking.id == booking_id
+
+    booking = db.query(DarshanBooking).filter(
+        DarshanBooking.id == extend_in.booking_id
     ).first()
 
     if not booking:
         raise HTTPException(
-            404,
-            "Booking not found"
+            status_code=404,
+            detail="Booking not found"
         )
 
-    check = check_extension(
+    extension_check = check_extension(
         db,
-        booking_id
+        extend_in.booking_id
     )
 
-    if not check["possible"]:
+    if not extension_check["possible"]:
         raise HTTPException(
-            400,
-            check["message"]
+            status_code=400,
+            detail=extension_check["message"]
         )
 
-    booking.end_datetime = (
-        booking.end_datetime
-        + timedelta(minutes=60)
-    )
-
-    extension = SessionExtension(
+    participant = DarshanParticipant(
         booking_id=booking.id,
-        minutes=30,
-        amount=399
+        full_name=extend_in.full_name,
+        age=extend_in.age,
+        darshan_name=extend_in.darshan_name,
+        is_extension=True
     )
 
-    db.add(extension)
+    db.add(participant)
 
-    db.commit()
-    db.refresh(extension)
+    booking.payment_mode = extend_in.payment_mode
 
-    return extension
+    try:
+        db.commit()
+        db.refresh(participant)
+
+    except Exception as e:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+    return {
+        "success": True,
+        "message": "Extension created successfully",
+        "participant_id": participant.id,
+        "booking_id": booking.id,
+        "participant_name": participant.full_name,
+        "is_extension": participant.is_extension
+    }

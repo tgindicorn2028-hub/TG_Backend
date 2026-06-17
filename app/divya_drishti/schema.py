@@ -2,7 +2,12 @@ from pydantic import BaseModel, Field, validator
 from typing import Optional
 from datetime import datetime , date , time 
 
-
+class SessionExtensionCreateRequest(BaseModel):
+    booking_id: int
+    full_name: str
+    age: int
+    darshan_name: str
+    payment_mode: str
 
 class DarshanBookingCreate(BaseModel):
     full_name: str = Field(..., min_length=2, max_length=150)
@@ -13,6 +18,7 @@ class DarshanBookingCreate(BaseModel):
     persons: int = Field(..., gt=0)
     slot_time: str = Field(..., min_length=3)
     slot_date: date = Field(...)
+    payment_status: str = Field(..., min_length=3)
     
 
     @validator("full_name", "contact_number", "whatsapp_number", "address", "slot_time" )
@@ -25,9 +31,11 @@ class ParticipantCreate(BaseModel):
     full_name: str
     age: int
     darshan_name: str
+    
 class CompleteBookingDetails(BaseModel):
     participants: list[ParticipantCreate]
     payment_mode: str
+    is_extension: Optional[bool] = False
 
 
 class DarshanBookingResponse(BaseModel):
@@ -105,8 +113,7 @@ class SessionExtensionCheckRequest(BaseModel):
     booking_id: int
 
 
-class SessionExtensionCreateRequest(BaseModel):
-    booking_id: int
+
 
 
 class SessionExtensionCheckResponse(BaseModel):

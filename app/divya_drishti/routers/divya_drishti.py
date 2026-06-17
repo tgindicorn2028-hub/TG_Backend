@@ -298,7 +298,7 @@ def extend_session(
 ):
     return service.extend_session(
         db,
-        extend_in.booking_id
+        extend_in
     )
 @router.get("/slots")
 def get_available_slots(
