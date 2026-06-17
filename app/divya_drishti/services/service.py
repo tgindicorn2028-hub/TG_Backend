@@ -238,17 +238,18 @@ def complete_booking_details(
             detail="Booking not found"
         )
 
-    if len(details.participants) != booking.persons :
+    if (booking.persons % 2 == 0)and len(details.participants) > booking.persons :
         raise HTTPException(
             status_code=400,
-            detail=f"Expected {booking.persons} participants"
+            detail=f"Expected {booking.persons}  participants"
         )
     for p in details.participants:
         participant = DarshanParticipant(
             booking_id=booking.id,
             full_name=p.full_name,
             age=p.age,
-            darshan_name=p.darshan_name
+            darshan_name=p.darshan_name,
+            is_extension=False
         )
         db.add(participant)
     booking.payment_status = "full"
