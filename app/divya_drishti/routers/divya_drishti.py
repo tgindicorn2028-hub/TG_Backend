@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.orm import Session
 from datetime import date
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse , RedirectResponse
 from urllib.parse import quote
 from app.database import get_db
 from ..schema import (
@@ -103,7 +103,11 @@ async def update_booking(
         booking_id,
         booking_in
     )
+@router.get("/qr/{booking_id}")
+def get_qr(booking_id: int, db: Session = Depends(get_db)):
+    booking = get_booking(db, booking_id)
 
+    return RedirectResponse(url=booking.qr_code)
 @router.get("/approve-booking/{booking_id}")
 def approve_booking_email(
     booking_id: int,
@@ -130,7 +134,7 @@ We are delighted to inform you that your booking has been approved.
 • Persons: {booking.persons}
 
 🎫 Your QR Code:
-<a href="{booking.qr_code}" target="_blank">View QR Code</a>
+https://www.tirthghumo.com/qr/{booking_id}
 
 📝 Important Instructions
 
@@ -139,7 +143,7 @@ We are delighted to inform you that your booking has been approved.
 • Our Saarthi will contact you before arrival.
 • If you need to reschedule, contact us at least 24 hours before the session.
 
-📞 Support: +91 6260499299
+📞 Support: 6260499299
 📧 enquiry.tirthghumo@gmail.com
 
 We hope this spiritual experience brings peace, positivity and divine blessings into your life. 🌸🙏
@@ -232,7 +236,7 @@ This may happen due to:
 
 If you believe this was a mistake or would like to book another slot, please contact our support team.
 
-📞 Support: +91 6260499299
+📞 Support: 6260499299
 📧 enquiry.tirthghumo@gmail.com
 
 We sincerely apologize for any inconvenience caused and hope to serve you in the future. 🌸🙏
