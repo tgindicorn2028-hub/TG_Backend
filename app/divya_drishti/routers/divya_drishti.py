@@ -134,7 +134,7 @@ We are delighted to inform you that your booking has been approved.
 • Persons: {booking.persons}
 
 🎫 Your QR Code:
-https://www.tirthghumo.com/qr/{booking_id}
+https://www.tirthghumo.com/divya-drishti/qr/{booking_id}
 
 📝 Important Instructions
 
