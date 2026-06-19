@@ -27,6 +27,15 @@ router = APIRouter(
     prefix="/divya-drishti",
     tags=["Divya Drishti"]
 )
+@router.get("/booking/{booking_id}")
+def get_booking_details(
+    booking_id: int,
+    db: Session = Depends(get_db)
+):
+    return service.get_booking_details(
+        db,
+        booking_id
+    )
 
 @router.post(
     "/book",

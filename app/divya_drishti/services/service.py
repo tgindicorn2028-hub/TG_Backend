@@ -261,14 +261,75 @@ def complete_booking_details(
 
     return booking
 
-def get_bookings(db: Session):
-    try:
-        return db.query(DarshanBooking).order_by(DarshanBooking.created_at.desc()).all()
-    except Exception as e:
+def get_booking_details(
+    db: Session,
+    booking_id: int
+):
+
+    booking = db.query(
+        DarshanBooking
+    ).filter(
+        DarshanBooking.id == booking_id
+    ).first()
+
+    if not booking:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred while fetching bookings: {str(e)}"
+            status_code=404,
+            detail="Booking not found"
         )
+
+    participants = db.query(
+        DarshanParticipant
+    ).filter(
+        DarshanParticipant.booking_id == booking_id
+    ).all()
+
+    sessions = db.query(
+        DarshanSession
+    ).filter(
+        DarshanSession.booking_id == booking_id
+    ).all()
+
+    reviews = db.query(
+        DarshanReview
+    ).filter(
+        DarshanReview.booking_id == booking_id
+    ).all()
+
+    return {
+    "booking_id": booking.id,
+    "full_name": booking.full_name,
+    "contact_number": booking.contact_number,
+    "whatsapp_number": booking.whatsapp_number,
+    "address": booking.address,
+    "persons": booking.persons,
+    "slot_date": booking.slot_date,
+    "slot_time": booking.slot_time,
+    "status": booking.status,
+    "payment_status": booking.payment_status,
+    "qr_code": booking.qr_code,
+
+    "participants": [
+        {
+            "id": p.id,
+            "full_name": p.full_name,
+            "age": p.age,
+            "darshan_name": p.darshan_name,
+            "is_extension": p.is_extension
+        }
+        for p in participants
+    ],
+
+    "sessions": [
+        {
+            "id": s.id,
+            "start_time": s.start_time,
+            "end_time": s.end_time,
+            "status": s.status
+        }
+        for s in sessions
+    ]
+}
 
 def approve_booking(db: Session, booking_id: int, background_tasks: BackgroundTasks) -> DarshanBooking:
     booking = db.query(DarshanBooking).filter(DarshanBooking.id == booking_id).first()
