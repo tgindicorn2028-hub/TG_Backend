@@ -252,7 +252,7 @@ def complete_booking_details(
             is_extension=False
         )
         db.add(participant)
-    booking.payment_status = "full"
+    
     
 
 
