@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timezone , date , time , timedelta
 import qrcode
 import asyncio
+import requests
 import os
 from fastapi import HTTPException, status , BackgroundTasks, UploadFile 
 from typing import List
@@ -625,9 +626,11 @@ def extend_session(
         is_extension=True
     )
 
+
     db.add(participant)
 
     booking.payment_mode = extend_in.payment_mode
+    booking.end_datetime += timedelta(minutes=30)
 
     try:
         db.commit()
@@ -666,11 +669,16 @@ def check_extension(
         )
 
     extension_start = booking.end_datetime
-
+    LAST_ALLOWED_END_TIME = time(22, 0)
     extension_end = (
         extension_start
-        + timedelta(minutes=90)
+        + timedelta(minutes=30)
     )
+    if extension_end.hour  > 22:
+        return {
+            "possible": False,
+            "message": "Extension unavailable. Last slot reached."
+        }
 
     other_bookings = db.query(
         DarshanBooking
@@ -707,3 +715,15 @@ def check_extension(
         "amount": 499,
         "message": "Extension available"
     }
+def shorten_url(long_url: str) -> str:
+    try:
+        response = requests.get(
+            "https://tinyurl.com/api-create.php",
+            params={"url": long_url},
+            timeout=5
+        )
+        if response.status_code == 200:
+            return response.text
+    except Exception:
+        pass
+    return long_url  

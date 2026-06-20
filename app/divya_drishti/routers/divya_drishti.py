@@ -106,7 +106,6 @@ async def update_booking(
 @router.get("/qr/{booking_id}")
 def get_qr(booking_id: int, db: Session = Depends(get_db)):
     booking = get_booking(db, booking_id)
-
     return RedirectResponse(url=booking.qr_code)
 @router.get("/approve-booking/{booking_id}")
 def approve_booking_email(
@@ -118,7 +117,8 @@ def approve_booking_email(
         booking_id,
         BackgroundTasks()
     )
-
+    short_qr_url = service.shorten_url(booking.qr_code)
+    print(short_qr_url)
     whatsapp_message = f"""
 🙏 *Divya Drishti VR Darshan Booking Confirmed*
 
@@ -133,8 +133,7 @@ We are delighted to inform you that your booking has been approved.
 • Time Slot: {booking.slot_time}
 • Persons: {booking.persons}
 
-🎫 Your QR Code:
-https://www.tirthghumo.com/divya-drishti/qr/{booking_id}
+🎫 Your QR Code:{short_qr_url}
 
 📝 Important Instructions
 
