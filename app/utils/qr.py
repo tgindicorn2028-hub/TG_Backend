@@ -10,6 +10,7 @@ from app.config import settings
 from fastapi import BackgroundTasks
 from fastapi import Query
 from app.utils.pricing.pachmarhi import get_price_per_person
+from app.utils.pricing.divya_drishti import get_group_vr_price
 from math import ceil
 router = APIRouter()
 
@@ -470,6 +471,25 @@ async def generate_divya_drishti_qr(
   return {
       "payment_qr_url": qr_url,
       "amount": booking_price
+  }
+
+@router.get("/divya-drishti/groupbooking")
+async def divya_drishti_group_booking_qr(
+  persons:int,
+  partial:bool,
+  db: Session = Depends(get_db)
+):
+  if persons < 10 :
+    return "Minimum 10 people required for Group VR Booking."
+  price = get_group_vr_price(persons) 
+  if partial :
+    price = price / 2 
+
+  qr_url = create_qr_base64(price)
+
+  return {
+      "payment_qr_url": qr_url,
+      "amount": price
   }
 
 
