@@ -5,17 +5,18 @@ import uuid
 import os
 import json
 from app.utils.pricing.pachmarhi import get_price_per_person
-from app.utils.qr import get_price_per_person_qr
+from app.utils.odt_pricing import get_price_per_person
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.abspath(os.path.join(BASE_DIR, "../public/invoice_template.jpg"))
 
 def generate_invoice(data):
     meal_preference = data.meal_preference
+    
 
     quantity = data.total_people
     total = 1351 * quantity
     
-    amount = quantity * get_price_per_person_qr(quantity , meal_preference)
+    amount = quantity * get_price_per_person(quantity , meal)
     discount = total - amount
     
     file_name = f"invoice_{uuid.uuid4().hex[:8]}.pdf"
