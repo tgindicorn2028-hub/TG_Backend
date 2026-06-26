@@ -16,7 +16,7 @@ def generate_invoice(data):
     quantity = data.total_people
     total = 1351 * quantity
     
-    amount = quantity * get_price_per_person(quantity , meal)
+    amount = quantity * get_price_per_person(quantity , meal_preference)
     discount = total - amount
     
     file_name = f"invoice_{uuid.uuid4().hex[:8]}.pdf"
