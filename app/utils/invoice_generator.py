@@ -16,7 +16,7 @@ def generate_invoice(data):
     total = 1351 * quantity
     
     amount = quantity * get_price_per_person_qr(quantity , meal_preference)
-    discount = 0
+    discount = total - amount
     
     file_name = f"invoice_{uuid.uuid4().hex[:8]}.pdf"
     invoices_folder = os.path.abspath(os.path.join(BASE_DIR, "../invoices"))
