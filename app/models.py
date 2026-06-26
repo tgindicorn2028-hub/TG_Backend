@@ -51,6 +51,7 @@ class ODT1(Base):
     total_people = Column(Integer, nullable=False)
     total_price = Column(Integer, nullable=False)
     meal_preference = Column(String(30), nullable=False)
+    trek_date = Column(Date, nullable=False)
     status = Column(String(20), default="pending")
     payment_screenshot = Column(String(255), nullable=False)
     agree = Column(Boolean, default=False)

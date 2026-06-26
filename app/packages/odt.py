@@ -11,7 +11,7 @@ from fastapi import BackgroundTasks
 from app.utils.invoice_generator import generate_invoice
 from app.utils.supabase_uploads import upload_to_supabase
 from app.utils.odt_pricing import get_price_per_person
-
+from fastapi.responses import HTMLResponse
 
 router = APIRouter()
 
@@ -27,6 +27,7 @@ async def odt_booking(
     background_tasks: BackgroundTasks,
     travellers: str = Form(...),   # JSON string array
     meal_preference: str = Form(...),
+    trek_date: str = Form(...) ,
     agree: bool = Form(...),
     payment_screenshot: UploadFile = File(...),
     db: Session = Depends(get_db)
@@ -87,6 +88,7 @@ async def odt_booking(
         total_people=total_people,
         total_price=total_price,
         meal_preference=meal_preference,
+        trek_date=trek_date, 
         agree=agree,
         payment_screenshot=file_location,
         status="pending"
@@ -131,6 +133,92 @@ async def odt_booking(
         "total_people": total_people,
         "total_price": total_price
     }
+
+
+def _status_page(title: str, message: str, color: str, icon: str) -> HTMLResponse:
+    html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <style>
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+    body {{
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: #f4f4f4;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }}
+    .card {{
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #e0e0e0;
+      padding: 48px 40px;
+      text-align: center;
+      max-width: 420px;
+      width: 90%;
+    }}
+    .icon {{
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: {color}15;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 28px;
+    }}
+    .brand {{
+      font-size: 13px;
+      font-weight: 600;
+      color: #9ca3af;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }}
+    .brand span {{ color: #f97316; }}
+    h1 {{
+      font-size: 22px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 10px;
+    }}
+    p {{
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.6;
+    }}
+    .divider {{
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 28px 0;
+    }}
+    .footer {{
+      font-size: 12px;
+      color: #9ca3af;
+    }}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">Tirth<span>Ghumo</span></div>
+    <div class="icon">{icon}</div>
+    <h1>{title}</h1>
+    <p>{message}</p>
+    <hr class="divider">
+    <div class="footer">This action has been recorded. You may close this tab.</div>
+  </div>
+</body>
+</html>
+"""
+    return HTMLResponse(content=html)
+
+
 @router.get("/odt/approve")
 def approve_booking(
     booking_id: int,
@@ -140,13 +228,12 @@ def approve_booking(
     booking = db.query(models.ODT1).filter(
         models.ODT1.id == booking_id
     ).first()
-    
+
     if not booking:
         raise HTTPException(404, "Booking not found")
+
     invoice_path = generate_invoice(booking)
-
     booking.status = "approved"
-
     db.commit()
 
     background_tasks.add_task(
@@ -156,7 +243,14 @@ def approve_booking(
         invoice_path
     )
 
-    return {"message": "Booking approved"}
+    return _status_page(
+        title="Booking Approved",
+        message=f"Booking <strong>#TG-{booking_id}</strong> has been approved. "
+                f"The confirmation email and invoice have been sent to the customer.",
+        color="#16a34a",
+        icon="✓"
+    )
+
 
 @router.get("/odt/decline")
 def decline_booking(
@@ -172,7 +266,6 @@ def decline_booking(
         raise HTTPException(404, "Booking not found")
 
     booking.status = "declined"
-
     db.commit()
 
     background_tasks.add_task(
@@ -181,123 +274,10 @@ def decline_booking(
         booking.primary_email
     )
 
-    return {"message": "Booking declined"}
-
-
-# @router.post("/odt_booking" , status_code = status.HTTP_201_CREATED)
-# async def odt_booking( background_tasks: BackgroundTasks,
-#     full_name: str = Form(...),
-#     email_address: str = Form(...),
-#     age: int = Form(...),
-#     gender: str = Form(...),
-#     contact_number: str = Form(...),
-#     whatsapp_number: str = Form(...),
-#     college_name: str = Form(...),
-#     pick_up_loc: str = Form(...),
-#     drop_loc: str = Form(...),
-#     meal_preference: str = Form(...),
-#     trip_exp_level: str = Form(None),
-#     medical_details: str = Form(None),
-#     agree: bool = Form(...),
-#     coupon_code:str = Form(None),
-#     payment_screenshot: UploadFile = File(None),  db:Session = Depends(get_db) 
-   
-# ):
-
-#     # discount = 0 
-
-#     # if coupon_code and coupon_code.strip():
-#     #     coupon = db.query(models.ODTCoupon).filter(
-#     #         models.ODTCoupon.coupon_code == coupon_code
-#     #     ).first()
-#     #     if not coupon:
-#     #         raise HTTPException(status_code=400, detail="Invalid coupon code")
-#     #     if coupon.used:
-#     #         raise HTTPException(status_code=400, detail="Coupon code already used")
-#     #     discount = coupon.discount
-
-#     file_location = None
-
-#     if payment_screenshot:
-#         file_name = f"{email_address}_payment_{payment_screenshot.filename}"
-#         file_location = os.path.join(UPLOAD_DIR, file_name)
-#         with open(file_location, "wb") as buffer:
-#             shutil.copyfileobj(payment_screenshot.file, buffer)
-#     # payment_screenshot_url = None
-#     # if payment_screenshot:
-#     #     payment_screenshot_url = upload_to_supabase(
-#     #         payment_screenshot,
-#     #         folder="odt_B7_payments"
-#     #     )
-    
-#     details = models.ODT(
-#         full_name=full_name,
-#         email_address=email_address,
-#         age=age,
-#         gender=gender,
-#         contact_number=contact_number,
-#         whatsapp_number=whatsapp_number , 
-#         college_name=college_name,
-#         pick_up_loc=pick_up_loc,
-#         drop_loc=drop_loc,
-#         meal_preference=meal_preference,
-#         trip_exp_level=trip_exp_level,
-#         medical_details=medical_details,
-#         agree=agree,
-#         payment_screenshot=file_location
-#     ) 
-   
-    
-  
-#     db.add(details) 
-#     db.commit() 
-#     db.refresh(details)
-
-#     # if coupon_code:
-#     #     coupon.used = True 
-#     #     coupon.used_by_email = email_address
-#     #     db.commit()
-
-#     # invoice_path = generate_invoice(details)
-
-#     background_tasks.add_task(send_booking_email, details , file_location)
-#     # background_tasks.add_task(send_email_with_invoice, details, invoice_path)
-
-#     return {"message" : "Payment Successful"}
-
-
-# @router.get("/odt/confirm")
-# async def confirm_amount(booking_id: int, amount: int, db: Session = Depends(get_db)):
-#     # Fetch booking
-#     booking = db.query(models.ODT).filter(models.ODT.id == booking_id).first()
-
-#     if not booking:
-#         return {"error": "Booking not found"}
-
-#     # Generate invoice with selected amount
-#     print(amount , type(amount))
-#     invoice_path = generate_invoice(booking, amount)
-
-#     # Send invoice to user
-#     await send_email_with_invoice(booking, invoice_path)
-
-#     return {"message": f"Invoice for ₹{amount} sent to user {booking.email_address}"}
-
-# @router.get("/odt/decline")
-# async def decline_booking(
-#     booking_id: int,
-#     db: Session = Depends(get_db)
-# ):
-#     # Fetch booking
-#     booking_data = db.query(models.ODT).filter(models.ODT.id == booking_id).first()
-
-#     if not booking_data:
-#         raise HTTPException(status_code=404, detail="Booking not found")
-
-#     # Send decline email
-#     await send_booking_declined_email(booking_data)
-
-#     return {
-#         "status": "declined",
-#         "message": "User notified about payment not received."
-#     }
+    return _status_page(
+        title="Booking Declined",
+        message=f"Booking <strong>#TG-{booking_id}</strong> has been declined. "
+                f"The customer has been notified via email.",
+        color="#dc2626",
+        icon="✕"
+    )
