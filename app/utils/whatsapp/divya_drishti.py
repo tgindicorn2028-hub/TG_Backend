@@ -71,8 +71,6 @@ def send_whatsapp_message(phone: str, message: str):
         headers=headers,
         json=payload
     )
-    print("STATUS:", response.status_code)
-    print("RESPONSE:", response.text)
-    print(response.json())
+    
 
     return response.json()

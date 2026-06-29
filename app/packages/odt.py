@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from fastapi import FastAPI ,  HTTPException , Response , status , Depends , APIRouter , Form , File , UploadFile 
 import json
 import uuid
@@ -12,6 +13,8 @@ from app.utils.invoice_generator import generate_invoice
 from app.utils.supabase_uploads import upload_to_supabase
 from app.utils.odt_pricing import get_price_per_person
 from fastapi.responses import HTMLResponse
+
+from urllib.parse import quote
 
 router = APIRouter()
 
@@ -135,7 +138,23 @@ async def odt_booking(
     }
 
 
-def _status_page(title: str, message: str, color: str, icon: str) -> HTMLResponse:
+
+def _status_page(
+    title: str,
+    message: str,
+    color: str,
+    icon: str,
+    whatsapp_url: str | None = None,
+    whatsapp_label: str = "Send WhatsApp Message"
+) -> HTMLResponse:
+    whatsapp_button = ""
+    if whatsapp_url:
+        whatsapp_button = f"""
+    <hr class="divider">
+    <a href="{whatsapp_url}" target="_blank" class="btn-whatsapp">
+      <span>📱</span> {whatsapp_label}
+    </a>"""
+
     html = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -201,7 +220,22 @@ def _status_page(title: str, message: str, color: str, icon: str) -> HTMLRespons
     .footer {{
       font-size: 12px;
       color: #9ca3af;
+      margin-top: 24px;
     }}
+    .btn-whatsapp {{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #25D366;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }}
+    .btn-whatsapp:hover {{ background: #1ebe5d; }}
   </style>
 </head>
 <body>
@@ -210,13 +244,30 @@ def _status_page(title: str, message: str, color: str, icon: str) -> HTMLRespons
     <div class="icon">{icon}</div>
     <h1>{title}</h1>
     <p>{message}</p>
+    {whatsapp_button}
     <hr class="divider">
     <div class="footer">This action has been recorded. You may close this tab.</div>
   </div>
 </body>
 </html>
 """
-    return HTMLResponse(content=html)
+    return HTMLResponse(content=html, media_type="text/html; charset=utf-8")
+
+
+def _build_odt_whatsapp_message(booking) -> str:
+    return f"""
+Thank you {booking.primary_traveller_name} Ji for registering for the One Day Trek ! 
+
+Your registration is successful.  
+
+Please check your email for the confirmation and trek details.  
+
+Make sure you have raised the request to join the official WhatsApp group as all updates, packing lists, and important info will be shared there before the trek .
+
+See you on the trek ! 
+
+Team TirthGhumo
+""".strip()
 
 
 @router.get("/odt/approve")
@@ -235,6 +286,7 @@ def approve_booking(
     invoice_path = generate_invoice(booking)
     booking.status = "approved"
     db.commit()
+    db.refresh(booking)
 
     background_tasks.add_task(
         send_email_with_invoice,
@@ -243,12 +295,17 @@ def approve_booking(
         invoice_path
     )
 
+    whatsapp_message = _build_odt_whatsapp_message(booking)
+    whatsapp_url = f"https://wa.me/91{booking.primary_traveller_contact}?text={quote(whatsapp_message, safe='', encoding='utf-8')}"
+
     return _status_page(
         title="Booking Approved",
         message=f"Booking <strong>#TG-{booking_id}</strong> has been approved. "
                 f"The confirmation email and invoice have been sent to the customer.",
         color="#16a34a",
-        icon="✓"
+        icon="✓",
+        whatsapp_url=whatsapp_url,
+        whatsapp_label="Send WhatsApp to Customer"
     )
 
 
@@ -274,6 +331,7 @@ def decline_booking(
         booking.primary_email
     )
 
+    # No WhatsApp button on decline — email handles it
     return _status_page(
         title="Booking Declined",
         message=f"Booking <strong>#TG-{booking_id}</strong> has been declined. "
